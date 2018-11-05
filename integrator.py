@@ -9,14 +9,14 @@ cdmMass = 0.0 # eV
 wdmMass = 0.0 # eV
 ########################################################################################
 
-def grav_accelerate(bod, neighbor_tree, ndims):
+def grav_accelerate(bod, ptcl_tree):
     """
     calculates gravitational acceleration on one particle
 
     inputs
     -----------------
     bod : Body
-      one individual particle
+      one individual particle with ndims position
     neighbor_tree : Tree
       the tree structure containing neighbor CM and M data
 
@@ -25,6 +25,19 @@ def grav_accelerate(bod, neighbor_tree, ndims):
     accel : ndarray
       ndims x 1 array of accelerations
     """
+    assert type(bod) == Body, "bod input must be a Body object"
+    # get neighbor list
+    neighbor_list = ptcl_tree.neighbors(bod)
+
+    accel = 0
+    for neigh in neighbor_list:
+        posit = neigh[0]
+        mass = neigh[1]
+        dvect = bod.pos
+        d = posit - dvect
+        dmag2 = np.dot(d,d)
+        accel += G * mass / dmag2**1.5 * d
+
     return accel
 
 def get_dxdt():

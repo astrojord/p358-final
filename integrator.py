@@ -5,6 +5,12 @@ from BHA import Body
 # global constants
 H = 68.0 # km/s/Mpc
 G = 6.67e-20 # km^3/kg s^2
+
+omegaM = 0 # matter in total (omegaB + omegaDM)
+omegaB = 0 # baryonic matter
+omegaDM = 0 # dark matter
+omegaDE = 0 # dark energy
+
 cdmMass = 0.0 # eV
 wdmMass = 0.0 # eV
 ########################################################################################
@@ -29,7 +35,7 @@ def grav_accelerate(bod, ptcl_tree):
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
 
-    accel = 0
+    accel = np.zeros(3)
     for neigh in neighbor_list:
         posit = neigh[0]
         mass = neigh[1]
@@ -64,8 +70,34 @@ def get_dxdt(bod,tau,ptcl_tree):
     accel = np.zeros(3)
     
     return accel
+def a(time,mode):
+    """
+    get a (cosmological scale factor) in terms of either conformal or
+    cosmological time (tau or t)
+    
+    equations from Sazhin et. al. 2011
 
+    inputs
+    ----------------
+    time : float
+      value of tau or t, depending on mode
+    mode : int
+      0 or 1; 0 corresponds to conformal time tau, 1 corresponds to
+              cosmological time t
 
+    outputs
+    ----------------
+    a : float
+    
+    """
+    if mode == 0: # conformal
+        return (omegaM/4) * (H0*time)**2
+    else if mode == 1: # cosmological
+        return (9*omegaM/4)**(1/3) * (H0*time)**(2/3)
+    else
+        print("invalid mode input -- must be 0 or 1")
+        return Nan
+########################################################################################   
 def leapfrog():
     """
     implement the time step equations from leapfrog to get new positions and

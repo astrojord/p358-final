@@ -35,21 +35,21 @@ def get_dxdt(bod, tau, ptcl_tree):
     neighbor_list = ptcl_tree.neighbors(bod)
     
     # calculate the negative of the gravitational potential
-    negPotential = np.zeros(3)
+    negGradPotential = np.zeros(3)
     for neigh in neighbor_list:
         posit = neigh[0]
         mass = neigh[1]
         dvect = bod.pos
         r = posit - dvect
         for i in range(0,2):
-            negPotential[i] = -1*(G*mass*(posit[i]-dvect[i]))/((np.dot(r,r))**(3/2))
+            negGradPotential[i] = -1*(G*mass*r[i])/((np.dot(r,r))**(3/2))
 
     # calculate the H(tau)v(tau) term
     expansion = np.zeros(3)
     a = a(tau,0)
     # how to get v(t)!
 
-    accel = negPotential - expansion
+    accel = negGradPotential - expansion
     return accel
 
 def a(time, mode):

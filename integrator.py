@@ -40,7 +40,7 @@ def grav_accelerate(bod, ptcl_tree):
 
     return accel
 
-def get_dxdt():
+def get_dxdt(bod,tau,ptcl_tree):
     """
     calculates total acceleration from equation of motion (yall can do this for
     one body at a time and put the loop in integrate, or just all the bodies)
@@ -57,7 +57,13 @@ def get_dxdt():
     var : type
       description
     """
-    return
+    assert type(bod) == Body, "bod input must be a Body object"
+    # get neighbor list
+    neighbor_list = ptcl_tree.neighbors(bod)
+    
+    accel = np.zeros(3)
+    
+    return accel
 
 
 def leapfrog():

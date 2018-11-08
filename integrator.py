@@ -1,20 +1,18 @@
 import numpy as np
 from BHA import Body
-
 ########################################################################################
 # global constants
-H = 68.0 # km/s/Mpc
-G = 6.67e-20 # km^3/kg s^2
+H = 68.0  # km/s/Mpc
+G = 6.67e-20  # km^3/kg s^2
 
-omegaM = 0 # matter in total (omegaB + omegaDM)
-omegaB = 0 # baryonic matter
-omegaDM = 0 # dark matter
-omegaDE = 0 # dark energy
+omegaM = 0  # matter in total (omegaB + omegaDM)
+omegaB = 0  # baryonic matter
+omegaDM = 0  # dark matter
+omegaDE = 0  # dark energy
 
-cdmMass = 0.0 # eV
-wdmMass = 0.0 # eV
+cdmMass = 0.0  # eV
+wdmMass = 0.0  # eV
 ########################################################################################
-
 def grav_accelerate(bod, ptcl_tree):
     """
     calculates gravitational acceleration on one particle
@@ -41,40 +39,53 @@ def grav_accelerate(bod, ptcl_tree):
         mass = neigh[1]
         dvect = bod.pos
         d = posit - dvect
-        dmag2 = np.dot(d,d)
-        accel += G * mass / dmag2**1.5 * d
+        dmag2 = np.dot(d, d)
+        accel += G * mass / dmag2 ** 1.5 * d
 
     return accel
 
-def get_dxdt(bod,tau,ptcl_tree):
+def get_dxdt(bod, tau, ptcl_tree):
     """
     calculates total acceleration from equation of motion (yall can do this for
     one body at a time and put the loop in integrate, or just all the bodies)
 
     inputs
     -----------------
-    var : type
-      description
-    var : type
-      description
+    bod : Body
+      one individual particle with ndims position
+    neighbor_tree : Tree
+      the tree structure containing neighbor CM and M data
 
     outputs
     -----------------
-    var : type
-      description
+    accel : ndarray
+      3x1 array of dx_i/dtau
     """
     assert type(bod) == Body, "bod input must be a Body object"
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
-    
-    accel = np.zeros(3)
-    
+
+    negPotential = np.zeros(3)
+    for neigh in neighbor_list:
+        posit = neigh[0]
+        mass = neigh[1]
+        dvect = bod.pos
+        r = posit - dvect
+        for i in range(0,2):
+            negPotential[i] = -1*(G*mass*(posit[i]-dvect[i]))/((np.dot(r,r))**(3/2))
+
+    expansion = np.zeros(3) # H(t)v(t)
+    a = a(tau,0)
+    # how to get v(t)!
+
+    accel = negPotential - expansion
     return accel
-def a(time,mode):
+
+def a(time, mode):
     """
     get a (cosmological scale factor) in terms of either conformal or
     cosmological time (tau or t)
-    
+
     equations from Sazhin et. al. 2011
 
     inputs
@@ -84,20 +95,19 @@ def a(time,mode):
     mode : int
       0 or 1; 0 corresponds to conformal time tau, 1 corresponds to
               cosmological time t
-
     outputs
     ----------------
     a : float
-    
     """
-    if mode == 0: # conformal
-        return (omegaM/4) * (H0*time)**2
-    else if mode == 1: # cosmological
-        return (9*omegaM/4)**(1/3) * (H0*time)**(2/3)
+    if mode == 0:  # conformal
+        return (omegaM / 4) * (H0 * time) ** 2
+    else if mode == 1:  # cosmological
+        return (9 * omegaM / 4) ** (1 / 3) * (H0 * time) ** (2 / 3)
     else
         print("invalid mode input -- must be 0 or 1")
         return Nan
-########################################################################################   
+
+########################################################################################
 def leapfrog():
     """
     implement the time step equations from leapfrog to get new positions and
@@ -115,33 +125,10 @@ def leapfrog():
     """
     return
 
-
 # use this to see what a body object is
-#bo = Body((3,4,5), 60)
-#print(bo)
-
-
-
-
-
-
-
-
-
-
-
-
+# bo = Body((3,4,5), 60)
+# print(bo)
 ########################################################################################
-
-
-
-
-
-
-
-
-
-
 """
 def gravPotential(x1,x2,dmType): 
   # x1 and x2 are the position vectors of 2 particles; dmType = 0 for WDM, = 1 for CDM
@@ -152,7 +139,7 @@ def gravPotential(x1,x2,dmType):
   else 
     print("Invalid dmType parameter given. Must be 0 (WDM) or 1 (CDM).")
     return NaN
-  
+
   r = np.sqrt(((x1[0]-x2[0])**2)+((x1[1]-x2[1])**2)+((x1[2]-x2[2])**2))
   return -1*G*(m**2)/r # this is a scalar -- does it need to be a vector and if so how do we get direction
 """

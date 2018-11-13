@@ -13,10 +13,9 @@ omegaDE = 0  # dark energy
 cdmMass = 0.0  # eV
 wdmMass = 0.0  # eV
 ########################################################################################
-def get_dxdt(bod, tau, ptcl_tree):
+def grav_accelerate(bod, ptcl_tree):
     """
-    calculates total acceleration from equation of motion (yall can do this for
-    one body at a time and put the loop in integrate, or just all the bodies)
+    calculates gravitational acceleration on one particle
 
     inputs
     -----------------
@@ -25,31 +24,23 @@ def get_dxdt(bod, tau, ptcl_tree):
     neighbor_tree : Tree
       the tree structure containing neighbor CM and M data
 
-    outputs
+    outputs:
     -----------------
     accel : ndarray
-      3x1 array of dx_i/dtau
+      ndims x 1 array of accelerations
     """
-    assert type(bod) == Body, "bod input must be a Body object"
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
-    
-    # calculate the negative of the gravitational potential
-    negGradPotential = np.zeros(3)
+    dvect = bod.pos
+
+    accel = np.zeros(len(dvect))
     for neigh in neighbor_list:
         posit = neigh[0]
         mass = neigh[1]
-        dvect = bod.pos
-        r = posit - dvect
-        for i in range(0,2):
-            negGradPotential[i] = -1*(G*mass*r[i])/((np.dot(r,r))**(3/2))
+        d = posit - dvect
+        dmag2 = np.dot(d,d)
+        accel += G * mass / dmag2**1.5 * d
 
-    # calculate the H(tau)v(tau) term
-    expansion = np.zeros(3)
-    a = a(tau,0)
-    # how to get v(t)!
-
-    accel = negGradPotential - expansion
     return accel
 
 def a(time, mode):
@@ -88,6 +79,46 @@ def leapfrog():
     ----------------
     var : type
       description
+      
+########################################################################################
+def get_dxdt(bod, tau, ptcl_tree):
+    """
+    calculates total acceleration from equation of motion (yall can do this for
+    one body at a time and put the loop in integrate, or just all the bodies)
+
+    inputs
+    -----------------
+    bod : Body
+      one individual particle with ndims position
+    neighbor_tree : Tree
+      the tree structure containing neighbor CM and M data
+
+    outputs
+    -----------------
+    accel : ndarray
+      3x1 array of dx_i/dtau
+    """
+    assert type(bod) == Body, "bod input must be a Body object"
+    # get neighbor list
+    neighbor_list = ptcl_tree.neighbors(bod)
+    
+    # calculate the negative of the gravitational potential
+    negGradPotential = np.zeros(3)
+    for neigh in neighbor_list:
+        posit = neigh[0]
+        mass = neigh[1]
+        dvect = bod.pos
+        r = posit - dvect
+        for i in range(0,2):
+            negGradPotential[i] = -1*(G*mass*r[i])/((np.dot(r,r))**(3/2))
+
+    # calculate the H(tau)v(tau) term
+    expansion = np.zeros(3)
+    a = a(tau,0)
+    # how to get v(t)!
+
+    accel = negGradPotential - expansion
+    return accel
 
     outputs
     ----------------

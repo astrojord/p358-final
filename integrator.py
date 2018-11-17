@@ -16,14 +16,12 @@ wdmMass = 0.0  # eV
 def grav_accelerate(bod, ptcl_tree):
     """
     calculates gravitational acceleration on one particle
-
     inputs
     -----------------
     bod : Body
       one individual particle with ndims position
     neighbor_tree : Tree
       the tree structure containing neighbor CM and M data
-
     outputs:
     -----------------
     accel : ndarray
@@ -47,9 +45,7 @@ def a(time, mode):
     """
     get a (cosmological scale factor) in terms of either conformal or
     cosmological time (tau or t)
-
     equations from Sazhin et. al. 2011
-
     inputs
     ----------------
     time : float
@@ -70,16 +66,8 @@ def a(time, mode):
         return Nan
 
 ########################################################################################
-def leapfrog():
-    """
-    implement the time step equations from leapfrog to get new positions and
-    velocities for all particles
 
-    inputs
-    ----------------
-    var : type
-      description
-      
+
 ########################################################################################
 def get_dxdt(bod, tau, ptcl_tree):
     """
@@ -101,7 +89,7 @@ def get_dxdt(bod, tau, ptcl_tree):
     assert type(bod) == Body, "bod input must be a Body object"
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
-    
+
     # calculate the negative of the gravitational potential
     negGradPotential = np.zeros(3)
     for neigh in neighbor_list:
@@ -111,21 +99,60 @@ def get_dxdt(bod, tau, ptcl_tree):
         r = posit - dvect
         for i in range(0,2):
             negGradPotential[i] = -1*(G*mass*r[i])/((np.dot(r,r))**(3/2))
-
     # calculate the H(tau)v(tau) term
     expansion = np.zeros(3)
     a = a(tau,0)
     # how to get v(t)!
-
     accel = negGradPotential - expansion
     return accel
-
     outputs
     ----------------
     var : type
       description
     """
     return
+
+    """
+
+def leapfrog(bods,h,n,l):
+
+    """
+    implement one time step of leapfrog to get new positions and
+    velocities for all particles
+    inputs
+    ----------------
+    bods : list
+      list of body objects, one object for each particle
+    h : float
+      size of timestep?
+    n : int
+      number of dimensions
+    l : flt
+      side length of box (units?)
+    """
+
+    ptcl_tree = BHA.Node(pos = np.zeros(n), length = l) #make particle tree
+
+    for bod in bods: #fitting body to tree
+        ptcl_tree.fit(body)
+
+    ptcl_tree.calculate_coms() #calculate coms
+
+    for bod in bods: #update pos/vel/acc of each body with leapfrog equations
+        v1 = bod.vel #1 n, 2 is n+1/2, 3 is n+1
+        x1 = bod.pos
+        F1 = bod.acc
+
+        v2 = v1 + 0.5*h*F1
+        x3 = x1 + h*v2
+        bod.update_pos(x3) #update pos in bods list
+        F3 = get_dxdt(bod)
+        v3 = v2 + 0.5*h*F3
+
+        bod.update_vel(v3) #update body attributes in bods list
+        bod.update_acc(F3)
+
+    return bods
 
 # use this to see what a body object is
 # bo = Body((3,4,5), 60)

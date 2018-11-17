@@ -1,9 +1,10 @@
 import numpy as np
 from BHA import Body
+from BHA import Node
 ########################################################################################
 # global constants
 H = 68.0  # km/s/Mpc
-G = 6.67e-20  # km^3/kg s^2
+G = 1#6.67e-20  # km^3/kg s^2
 
 omegaM = 0  # matter in total (omegaB + omegaDM)
 omegaB = 0  # baryonic matter
@@ -40,7 +41,7 @@ def grav_accelerate(bod, ptcl_tree):
         accel += G * mass / dmag2**1.5 * d
 
     return accel
-
+'''
 def a(time, mode):
     """
     get a (cosmological scale factor) in terms of either conformal or
@@ -56,14 +57,16 @@ def a(time, mode):
     outputs
     ----------------
     a : float
-    """
+
     if mode == 0:  # conformal
         return (omegaM / 4) * (H0 * time) ** 2
-    else if mode == 1:  # cosmological
+    elif mode == 1:  # cosmological
         return (9 * omegaM / 4) ** (1 / 3) * (H0 * time) ** (2 / 3)
     else
         print("invalid mode input -- must be 0 or 1")
         return Nan
+
+'''
 
 ########################################################################################
 
@@ -73,14 +76,12 @@ def get_dxdt(bod, tau, ptcl_tree):
     """
     calculates total acceleration from equation of motion (yall can do this for
     one body at a time and put the loop in integrate, or just all the bodies)
-
     inputs
     -----------------
     bod : Body
       one individual particle with ndims position
     neighbor_tree : Tree
       the tree structure containing neighbor CM and M data
-
     outputs
     -----------------
     accel : ndarray
@@ -97,22 +98,24 @@ def get_dxdt(bod, tau, ptcl_tree):
         mass = neigh[1]
         dvect = bod.pos
         r = posit - dvect
+        eps = 0.01 #temporary softening term (eventually should only be put in for close encounters)
         for i in range(0,2):
-            negGradPotential[i] = -1*(G*mass*r[i])/((np.dot(r,r))**(3/2))
+            negGradPotential[i] = -1*(G*mass*r[i])/((np.dot(r,r)+eps)**(3/2))
     # calculate the H(tau)v(tau) term
-    expansion = np.zeros(3)
-    a = a(tau,0)
+    #expansion = np.zeros(3)
+    #a = a(tau,0)
     # how to get v(t)!
-    accel = negGradPotential - expansion
+    accel = negGradPotential #- expansion
     return accel
+    '''
     outputs
     ----------------
     var : type
       description
     """
     return
-
     """
+    '''
 
 def leapfrog(bods,h,n,l):
 
@@ -124,17 +127,17 @@ def leapfrog(bods,h,n,l):
     bods : list
       list of body objects, one object for each particle
     h : float
-      size of timestep?
+      size of timestep
     n : int
       number of dimensions
     l : flt
       side length of box (units?)
     """
 
-    ptcl_tree = BHA.Node(pos = np.zeros(n), length = l) #make particle tree
+    ptcl_tree = Node(pos = np.zeros(n), length = l) #make particle tree
 
     for bod in bods: #fitting body to tree
-        ptcl_tree.fit(body)
+        ptcl_tree.fit(bod)
 
     ptcl_tree.calculate_coms() #calculate coms
 
@@ -146,13 +149,46 @@ def leapfrog(bods,h,n,l):
         v2 = v1 + 0.5*h*F1
         x3 = x1 + h*v2
         bod.update_pos(x3) #update pos in bods list
-        F3 = get_dxdt(bod)
+        F3 = get_dxdt(bod,1,ptcl_tree)
         v3 = v2 + 0.5*h*F3
 
         bod.update_vel(v3) #update body attributes in bods list
         bod.update_acc(F3)
 
     return bods
+
+def integrate(bods_init,ti,tf,h,N,l,nSave):
+    '''
+
+    bods_init : list
+        list of body objects corresponding to initial particle conditions
+    ti : float
+        simulation start time
+    tf : float
+        simulation end time
+    h : float
+        size of timestep
+    N : int
+        number of physical dimensions
+    l : float
+        physical size of box
+    nSave : int
+        number of snapshots
+    '''
+
+    bods = bods_init
+    t = ti
+    nstep = (tf-ti) // h
+    snapStep = nstep // nSave #number of steps between snapshots
+    snaps = []
+
+    for i in range(nstep):
+        print(i)
+        bods = leapfrog(bods,h,N,l)
+        if i%snapStep == 0:
+            snaps.append(bods)
+
+    return snaps
 
 # use this to see what a body object is
 # bo = Body((3,4,5), 60)

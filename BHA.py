@@ -1,17 +1,13 @@
 """Implementation of Barnes-Hut tree algorithm (quadtree, octatree...) in n-dimensions.
-
 Barnes-Hut algorithm is an approximation algorithm for performing an n-body simulation.
 BHTree generation recursively divides n-dim space into cells, which contain 0 or 1 bodies.
 This algorithm is used to approximate forces acting on a body. Group of bodies sufficently away
 from queried body can be approximated to one center of mass.
-
 See:
     https://en.wikipedia.org/wiki/Barnes%E2%80%93Hut_simulation
     http://arborjs.org/docs/barnes-hut
-
 See example implementation:
     https://codereview.stackexchange.com/questions/43749/barnes-hut-n-body-quadtree?newreg=e5c75739678d47d58bc1963b43ddd2e4
-
 Terminology:
     1.  Node            - Basic element of BHTree structure. Sector can be either:
         a.  Empty       - Doesn't contain any bodies,
@@ -257,9 +253,11 @@ class Body:
     """Body is an object populating Nodes. It is described by its:
         a. position     - Position in n-dimensional space,
         b. mass.
+        c. velocity     - velocity in n-dimensional space
+        d. acceleration - acceleration in n-dimensional space
         """
 
-    def __init__(self, pos, mass):
+    def __init__(self, pos, mass, vel, acc):
         if isinstance(pos, list):
             pos = np.array(pos)
         if isinstance(pos, tuple):
@@ -267,17 +265,32 @@ class Body:
         assert isinstance(pos, np.ndarray), "Position should be either a numpy.ndarray, list, or a tuple."
         assert (isinstance(mass, float) or isinstance(mass, int)), "Mass should be either a float, or int."
 
-        self.pos = pos
+        self.pos  = pos
         self.mass = mass
+        self.vel  = vel
+        self.acc  = acc
+
+    def update_pos(self,val):
+        self.pos = val
+        return
+    def update_mass(self,val):
+        self.mass = val
+        return
+    def update_vel(self,val):
+        self.vel = val
+        return
+    def update_acc(self,val):
+        self.acc = val
+        return
 
     def __eq__(self, other):
         return np.array_equal(self.pos, other.pos) and self.mass == other.mass
 
     def __add__(self, other):
         if isinstance(other, self.__class__):
-            return Body(self.pos, self.mass + other.mass)
+            return Body(self.pos, self.mass + other.mass, self.vel + other.vel, self.acc, other.acc)
         else:
             raise TypeError("unsupported operand type(s) for +: '{}' and '{}'").format(self.__class__, type(other))
 
     def __repr__(self):
-        return "<ndbh.Body: %s, mass: %d>" % (self.pos, self.mass)
+        return "<ndbh.Body: %s, mass: %d, %s, %s>" % (self.pos, self.mass, self.vel, self.acc)

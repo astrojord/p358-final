@@ -4,7 +4,7 @@ from BHA import Node
 ########################################################################################
 # global constants
 H = 68.0  # km/s/Mpc
-G = 1#6.67e-20  # km^3/kg s^2
+G = 0.8#6.67e-20  # km^3/kg s^2
 
 omegaM = 0  # matter in total (omegaB + omegaDM)
 omegaB = 0  # baryonic matter
@@ -14,7 +14,7 @@ omegaDE = 0  # dark energy
 cdmMass = 0.0  # eV
 wdmMass = 0.0  # eV
 ########################################################################################
-def grav_accelerate(bod, ptcl_tree):
+def grav_accelerate(bod, ptcl_tree,n):
     """
     calculates gravitational acceleration on one particle
     inputs
@@ -31,6 +31,7 @@ def grav_accelerate(bod, ptcl_tree):
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
+    eps = 0.01 #grav softening
 
     accel = np.zeros(len(dvect))
     for neigh in neighbor_list:
@@ -38,7 +39,7 @@ def grav_accelerate(bod, ptcl_tree):
         mass = neigh[1]
         d = posit - dvect
         dmag2 = np.dot(d,d)
-        accel += G * mass / dmag2**1.5 * d
+        accel += G * mass / ((dmag2+eps)**1.5) * d
 
     return accel
 '''
@@ -149,7 +150,7 @@ def leapfrog(bods,h,n,l):
         v2 = v1 + 0.5*h*F1
         x3 = x1 + h*v2
         bod.update_pos(x3) #update pos in bods list
-        F3 = get_dxdt(bod,1,ptcl_tree)
+        F3 = grav_accelerate(bod,1,ptcl_tree)
         v3 = v2 + 0.5*h*F3
 
         bod.update_vel(v3) #update body attributes in bods list

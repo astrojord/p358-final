@@ -150,7 +150,7 @@ def leapfrog(bods,h,n,l):
         v2 = v1 + 0.5*h*F1
         x3 = x1 + h*v2
         bod.update_pos(x3) #update pos in bods list
-        F3 = grav_accelerate(bod,1,ptcl_tree)
+        F3 = grav_accelerate(bod,ptcl_tree,3)
         v3 = v2 + 0.5*h*F3
 
         bod.update_vel(v3) #update body attributes in bods list

@@ -86,6 +86,7 @@ class Node:
             # first, check for out of bounds
             bounds_max = self.pos + self.length * 0.5
             bounds_min = self.pos - self.length * 0.5
+
             if any(body.pos > bounds_max) or any(body.pos < bounds_min):
                 raise AssertionError("Body is out of bounds!")
 
@@ -257,7 +258,7 @@ class Body:
         d. acceleration - acceleration in n-dimensional space
         """
 
-    def __init__(self, pos, mass, vel, acc):
+    def __init__(self, pos, mass, vel, acc,halonum):
         if isinstance(pos, list):
             pos = np.array(pos)
         if isinstance(pos, tuple):
@@ -265,10 +266,11 @@ class Body:
         assert isinstance(pos, np.ndarray), "Position should be either a numpy.ndarray, list, or a tuple."
         assert (isinstance(mass, float) or isinstance(mass, int)), "Mass should be either a float, or int."
 
-        self.pos  = pos
-        self.mass = mass
-        self.vel  = vel
-        self.acc  = acc
+        self.pos     = pos
+        self.mass    = mass
+        self.vel     = vel
+        self.acc     = acc
+        self.halonum = halonum
 
     def update_pos(self,val):
         self.pos = val
@@ -282,6 +284,9 @@ class Body:
     def update_acc(self,val):
         self.acc = val
         return
+    def update_halonum(self,val):
+        self.val = val
+        return
 
     def __eq__(self, other):
         return np.array_equal(self.pos, other.pos) and self.mass == other.mass
@@ -293,4 +298,4 @@ class Body:
             raise TypeError("unsupported operand type(s) for +: '{}' and '{}'").format(self.__class__, type(other))
 
     def __repr__(self):
-        return "<ndbh.Body: %s, mass: %d, %s, %s>" % (self.pos, self.mass, self.vel, self.acc)
+        return "<ndbh.Body: %s, mass: %d, %s, %s, halonum: %s>" % (self.pos, self.mass, self.vel, self.acc, self.halonum)

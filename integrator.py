@@ -4,7 +4,7 @@ from BHA import Node
 ########################################################################################
 # global constants
 H = 68.0  # km/s/Mpc
-G = 0.8#6.67e-20  # km^3/kg s^2
+G = 4.5245e-12 #kpc^3/(Msun*My^2)
 
 omegaM = 0  # matter in total (omegaB + omegaDM)
 omegaB = 0  # baryonic matter
@@ -31,15 +31,15 @@ def grav_accelerate(bod, ptcl_tree,n):
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
-    eps = 0.01 #grav softening
+    eps = 3 #grav softening
 
     accel = np.zeros(len(dvect))
     for neigh in neighbor_list:
         posit = neigh[0]
         mass = neigh[1]
-        d = posit - dvect
+        d = (posit - dvect) + eps
         dmag2 = np.dot(d,d)
-        accel += G * mass / ((dmag2+eps)**1.5) * d
+        accel += G * mass / ((dmag2)**1.5) * d
 
     return accel
 '''
@@ -58,7 +58,6 @@ def a(time, mode):
     outputs
     ----------------
     a : float
-
     if mode == 0:  # conformal
         return (omegaM / 4) * (H0 * time) ** 2
     elif mode == 1:  # cosmological
@@ -66,7 +65,6 @@ def a(time, mode):
     else
         print("invalid mode input -- must be 0 or 1")
         return Nan
-
 '''
 
 ########################################################################################
@@ -160,7 +158,6 @@ def leapfrog(bods,h,n,l):
 
 def integrate(bods_init,ti,tf,h,N,l,nSave):
     '''
-
     bods_init : list
         list of body objects corresponding to initial particle conditions
     ti : float

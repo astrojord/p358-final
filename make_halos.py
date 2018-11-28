@@ -13,7 +13,8 @@ def get_halos(fMH, npart, profile, sep):
             'infall' or 'NFW'
         sep : float
             separation between centers of halos
-    outputs: list
+    outputs:
+        intial_halos : list
             list of body objects of both halos
     """
     #get rs values from methast for each halo

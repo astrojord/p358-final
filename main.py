@@ -2,6 +2,8 @@ import numpy as np
 import make_halos as init #NFW_dist(r, rs), cusp_dist(r,rs), NFW_vel(r, rs, M, Rvir), cusp_vel(r,rs,M,Rvir), get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_type, Rv_typ, bigrat, axis)
 import methast as mh
 import argparse
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 # parse arguments
 parser = argparse.ArgumentParser()
@@ -27,6 +29,8 @@ parser.add_argument('axis', type=bool,
 
 args = parser.parse_args()
 
+color = ['k', 'r', 'g']
+
 #initialize the problem
 if args.profile == 'NFW':
     fDENS = init.NFW_dist
@@ -37,7 +41,28 @@ elif args.profile == 'cusp':
 
 # get inital conditios
 halos_init = init.get_halos(mh.methast, fDENS, fVELS, args.rs, args.delta, args.npart, args.M, args.R, args.bigrat, args.sep, args.axis)
-print(halos_init)
+bodz = halos_init
+
+#plot and check
+pos1 = np.zeros((len(bodz),3))
+halo = np.zeros(len(bodz))
+for i in range(len(bodz)):
+    for j in range(3):
+        pos1[i,j] = bodz[i].pos[j]
+
+    halo[i] = bodz[i].halonum
+
+fig = plt.figure()
+ax = fig.add_subplot(111,projection='3d')
+halo1_ind = np.where(halo == 1)[0]
+halo2_ind = np.where(halo == 2)[0]
+print(len(halo1_ind))
+print(len(halo2_ind))
+print(pos1[halo1_ind])
+ax.plot(pos1[halo1_ind,0],pos1[halo1_ind,1],pos1[halo1_ind,2], 'r.', markersize=2)
+ax.plot(pos1[halo2_ind,0],pos1[halo2_ind,1],pos1[halo2_ind,2], 'b.', markersize=2)
+
+plt.show()
 
 # run integrator.py and get all that good stuff
 # format output in the way we need it for analysis

@@ -258,7 +258,7 @@ class Body:
         d. acceleration - acceleration in n-dimensional space
         """
 
-    def __init__(self, pos, mass, vel, acc, halonum, ID):
+    def __init__(self, pos, mass, vel, acc, halonum):
         if isinstance(pos, list):
             pos = np.array(pos)
         if isinstance(pos, tuple):
@@ -271,7 +271,6 @@ class Body:
         self.vel     = vel
         self.acc     = acc
         self.halonum = halonum
-        self.ID   = ID
 
     def update_pos(self,val):
         self.pos = val
@@ -299,4 +298,4 @@ class Body:
             raise TypeError("unsupported operand type(s) for +: '{}' and '{}'").format(self.__class__, type(other))
 
     def __repr__(self):
-        return "<ndbh.Body: %s, mass: %d, %s, %s, halonum: %s, ID: %s>" % (self.pos, self.mass, self.vel, self.acc, self.halonum, self.ID)
+        return "<ndbh.Body: %s, mass: %d, %s, %s, halonum: %s>" % (self.pos, self.mass, self.vel, self.acc, self.halonum)

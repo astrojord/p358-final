@@ -24,14 +24,13 @@ def rnorm(R):
     return x
 
 #--------------------------------------------------------------
-def methast(fTAR,bounds,R,x0,delta):
+def methast(fTAR,scl,R,x0,delta):
     # Returns an array of random variables sampled according to a
     # target distribution fTAR.
     # input: fTAR      : function pointer to the target distribution.
     #                    The function must take arguments fTAR(x,bounds),
     #                    and must return the value of fTAR at x.
-    #        bounds    : lower and upper bounds for sampling x.
-    #                    Note that not all functions need this.
+    #        scl       : scaling factor for fTAR
     #        R         : number of samples to be generated
     #        x0        : initial guess
     #        delta     : step size, or scale (width of local proposal distribution Q)
@@ -39,9 +38,9 @@ def methast(fTAR,bounds,R,x0,delta):
     xr = []
     A = rnorm(R) #array of normal deviates
     for r in range(R):
-        P0 = fTAR(x0,bounds) #evaluate the initial guess
+        P0 = fTAR(x0,scl) #evaluate the initial guess
         xt = x0+(delta*A[r,np.random.choice([0,1])]) #pick a trial state
-        Pt = fTAR(xt,bounds) #evaluate the trial state
+        Pt = fTAR(xt,scl) #evaluate the trial state
         if Pt/P0 >= 1.:
             xr.append(xt)
             x0 = xt

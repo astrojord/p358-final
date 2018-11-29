@@ -1,4 +1,5 @@
 import numpy as np
+from BHA import Body
 
 G = #define universal grav constant in right units...
 

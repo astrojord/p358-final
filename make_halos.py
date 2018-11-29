@@ -88,9 +88,11 @@ def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, a
         pos2[2,:] -= sep/2.
 
     #make a list of body objects to output
+    bod = [None] * (npart1 + npart2)
+    print(len(bod))
     for i in range(npart1):
-        bod = Body(pos=pos1[:,i],mass=mpp,vel=vel1[:,i],acc=np.zeros(3),halonum = 1) #check type of halonum
+        bod[i] = Body(pos=pos1[:,i],mass=mpp,vel=vel1[:,i],acc=np.zeros(3),halonum = 1)
     for i in range(npart2):
-        bod = Body(pos=pos2[:,i],mass=mpp,vel=vel2[:,i],acc=np.zeros(3),halonum = 2) #check type of halonum
+        bod[npart1 + i] = Body(pos=pos2[:,i],mass=mpp,vel=vel2[:,i],acc=np.zeros(3),halonum = 2)
+    return bod
 
-print(cusp_dist(np.ones(5), 10))

@@ -1,7 +1,7 @@
 import numpy as np
 from BHA import Body
 
-G = #define universal grav constant in right units...
+G = 4.5245e-12 #kpc^3/(Msun*My^2)
 
 def NFW_dist(r, rs):
     dens = (r/rs)**(-1.)*(1+r/rs)**(-2.)

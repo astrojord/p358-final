@@ -14,7 +14,7 @@ omegaDE = 0  # dark energy
 cdmMass = 0.0  # eV
 wdmMass = 0.0  # eV
 ########################################################################################
-def grav_accelerate(bod, ptcl_tree,n):
+def grav_accelerate(bod, ptcl_tree,n,snap):
     """
     calculates gravitational acceleration on one particle
     inputs
@@ -27,21 +27,31 @@ def grav_accelerate(bod, ptcl_tree,n):
     -----------------
     accel : ndarray
       ndims x 1 array of accelerations
+    snap : int
+        1 if a snapshot is being taken, 0 otherwise
     """
     # get neighbor list
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
+    mbod  = bod.mass
     eps = 3 #grav softening
 
     accel = np.zeros(len(dvect))
+    Ug = 0 #gravitational potential, only actually calculated for snapshots
     for neigh in neighbor_list:
+
         posit = neigh[0]
         mass = neigh[1]
-        d = (posit - dvect) + eps
+        d = (posit - dvect)
         dmag2 = np.dot(d,d)
-        accel += G * mass / ((dmag2)**1.5) * d
+        if dmag2 != 0:
+            #print(d)
+            accel += G * mass / ((dmag2+eps)**1.5) * d
 
-    return accel
+            if snap == 1:
+                Ug += -0.5*G*mass*mbod / (np.sqrt(dmag2)) #factor of 1/2 from double counting particle pairs
+
+    return accel, Ug
 '''
 def a(time, mode):
     """
@@ -116,7 +126,7 @@ def get_dxdt(bod, tau, ptcl_tree):
     """
     '''
 
-def leapfrog(bods,h,n,l):
+def leapfrog(bods,h,n,l,snap):
 
     """
     implement one time step of leapfrog to get new positions and
@@ -131,6 +141,8 @@ def leapfrog(bods,h,n,l):
       number of dimensions
     l : flt
       side length of box (units?)
+    snap : int
+        1 if a snapshot is being taken, 0 else
     """
 
     ptcl_tree = Node(pos = np.zeros(n), length = l) #make particle tree
@@ -140,6 +152,8 @@ def leapfrog(bods,h,n,l):
 
     ptcl_tree.calculate_coms() #calculate coms
 
+    U_total = 0 #total gravitational potential, only calculated for snapshots
+
     for bod in bods: #update pos/vel/acc of each body with leapfrog equations
         v1 = bod.vel #1 n, 2 is n+1/2, 3 is n+1
         x1 = bod.pos
@@ -148,13 +162,16 @@ def leapfrog(bods,h,n,l):
         v2 = v1 + 0.5*h*F1
         x3 = x1 + h*v2
         bod.update_pos(x3) #update pos in bods list
-        F3 = grav_accelerate(bod,ptcl_tree,3)
+        F3, Ug = grav_accelerate(bod,ptcl_tree,3,snap)
         v3 = v2 + 0.5*h*F3
+
+        if snap == 1:
+            U_total += Ug
 
         bod.update_vel(v3) #update body attributes in bods list
         bod.update_acc(F3)
 
-    return bods
+    return bods, U_total
 
 def integrate(bods_init,ti,tf,h,N,l,nSave):
     '''
@@ -176,17 +193,32 @@ def integrate(bods_init,ti,tf,h,N,l,nSave):
 
     bods = bods_init
     t = ti
-    nstep = (tf-ti) // h
-    snapStep = nstep // nSave #number of steps between snapshots
-    snaps = []
+    nstep = int((tf-ti) // h)
+    snapStep = nSave #number of steps between snapshots
+    snaps  = []
+    U_list = []
+    T_list = []
 
     for i in range(nstep):
         print(i)
-        bods = leapfrog(bods,h,N,l)
         if i%snapStep == 0:
+            bods, U_total = leapfrog(bods,h,N,l,1)
             snaps.append(bods)
+            U_list.append(U_total)
 
-    return snaps
+            T_total = 0
+
+            for bod in bods:
+                v2 = np.dot(bod.vel,bod.vel)
+                m = bod.mass
+                T = 0.5*m*v2
+                T_total += T
+            T_list.append(T_total)
+
+        else:
+            bods, U_total = leapfrog(bods,h,N,l,0)
+
+    return snaps, U_list, T_list
 
 # use this to see what a body object is
 # bo = Body((3,4,5), 60)

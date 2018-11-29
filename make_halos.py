@@ -11,8 +11,9 @@ def cusp_dist(r, rs):
 def NFW_vel(r, rs, M, Rvir):
     v = np.sqrt(3.*G*M*rs**2. / Rvir**3. / (Rvir/rs) / (1.+Rvir/rs)**2. * (np.log(1.+r/rs) / (r/rs) - 1./(1.+r/rs)))
 
-#def cusp_vel(
-
+def cusp_vel(r, rs, M, Rvir):
+    v = np.sqrt(G*M/12./a * (12.*r*(r+a)**3./a**4. * np.log((r+a)/r) - r/(r+a) * (25.+52.*r/a+42.*(r/a)**2.+12.*r/a)))
+    
 
 def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep):
     """

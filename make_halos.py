@@ -76,7 +76,6 @@ def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, a
     pos2 = np.array([r2*np.sin(theta2)*np.cos(phi2), r2*np.sin(theta2)*np.sin(phi2), r2*np.cos(theta2)])
 
     vel1 = np.array([-1.*np.sin(phi1), np.cos(phi1), np.zeros(npart1)])
-    print(np.shape(vel1))
     vel2 = np.array([-1.*np.sin(phi2), np.cos(phi2), np.zeros(npart2)])
 
     #shift one halo sep/2 to the left and the other sep/2 to the right
@@ -89,7 +88,6 @@ def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, a
 
     #make a list of body objects to output
     bod = [None] * (npart1 + npart2)
-    print(len(bod))
     for i in range(npart1):
         bod[i] = Body(pos=pos1[:,i],mass=mpp,vel=vel1[:,i],acc=np.zeros(3),halonum = 1)
     for i in range(npart2):

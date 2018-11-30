@@ -40,16 +40,19 @@ def methast(fTAR,scl,R,x0,delta):
     for r in range(R):
         P0 = fTAR(x0,scl) #evaluate the initial guess
         xt = x0+(delta*A[r,np.random.choice([0,1])]) #pick a trial state
-        Pt = fTAR(xt,scl) #evaluate the trial state
-        if Pt/P0 >= 1.:
-            xr.append(xt)
-            x0 = xt
-        else:
-            u = np.random.random()
-            if u <= Pt/P0:
+        if xt >= 0.:
+            Pt = fTAR(xt,scl) #evaluate the trial state
+            if Pt/P0 >= 1.:
                 xr.append(xt)
                 x0 = xt
             else:
-                xr.append(x0)
+                u = np.random.random()
+                if u <= Pt/P0:
+                    xr.append(xt)
+                    x0 = xt
+                else:
+                    xr.append(x0)
+        else:
+            xr.append(x0)
     xr = np.array(xr)
     return xr

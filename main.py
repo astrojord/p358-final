@@ -75,8 +75,8 @@ ax.set_zlim(mainLim)
 plt.show()
 
 ti = 0 #initial time
-tf = 0.5 #final time, Myear
-h  = 0.01 #timestep, Myear
+tf = 80 #final time, Myear
+h  = 5 #timestep, Myear
 l = 1e5 #box size, Mpc
 nSave = 1 #number of steps between each save
 N = 3 #number of physical dimensions (plotting set for 3)
@@ -89,15 +89,25 @@ print('integration finished after '+str(dt)+' seconds')
 nP = len(bodlist[0])
 pos1 = np.zeros((nP,N))
 pos2 = np.zeros((nP,N))
+vel2 = []
 
 
 bodz1 = bodlist[0]
 bodz2 = bodlist[-1]
 
+
+
 for i in range(nP):
     for j in range(N):
         pos = bodz1[i].pos
+        vel = np.sqrt(np.dot(bodz2[i].vel,bodz2[i].vel))
         pos1[i,j] = pos[j]
+        vel2.append(vel)
+
+print('!!!')
+print(np.average(vel2))
+print(min(vel2))
+print(max(vel2))
 
 pos1x = pos1[:,0]
 pos1y = pos1[:,1]
@@ -149,9 +159,6 @@ plt.show()
 
 np.savetxt('dmpos.txt',pos1)
 
-print(K_list)
-print(U_list)
-
 Kvals = np.array(K_list)
 Uvals = np.array(U_list)
 
@@ -162,13 +169,17 @@ Ediff = Etot - Etot0
 steps = np.arange(len(bodlist))
 plt.close()
 plt.figure()
-plt.plot(steps,np.array(U_list)+np.array(K_list),'g')
-plt.plot(steps,U_list,'b')
-plt.plot(steps,K_list,'r')
+plt.plot(steps,np.array(U_list)+np.array(K_list),'g',label='total energy')
+plt.plot(steps,U_list,'b',label = 'potential energy')
+plt.plot(steps,K_list,'r',label = 'kinetic energy')
+plt.xlabel('timesteps')
+plt.ylabel('energy (Mstar*(kpc/Gy)**2)')
 
 plt.figure()
-plt.plot(steps,Ediff,'g.')
+plt.plot(steps,Ediff,'g.',label='energy change')
 plt.plot((0,steps[-1]),(0,0))
+plt.xlabel('timesteps')
+plt.ylabel('energy (Mstar*(kpc/Gy)**2)')
 plt.show()
 
 # format output in the way we need it for analysis

@@ -24,7 +24,7 @@ def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, a
         fDENS : function
             function handle for density
         fVELS : function
-            function handle for velocity squared
+            function handle for velocity
         rs : float
             radius scaling factor for initial profile
         delta : float

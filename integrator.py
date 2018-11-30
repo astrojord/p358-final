@@ -34,7 +34,8 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
     mbod  = bod.mass
-    eps = 3 #grav softening
+    eps = 0.1  #grav softening
+    l_soft = 0.1**2 #square of distance below which softening is used
 
     accel = np.zeros(len(dvect))
     Ug = 0 #gravitational potential, only actually calculated for snapshots
@@ -44,12 +45,19 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
         mass = neigh[1]
         d = (posit - dvect)
         dmag2 = np.dot(d,d)
-        if dmag2 != 0:
-            #print(d)
-            accel += G * mass / ((dmag2+eps)**1.5) * d
+        if dmag2 > 1e-5: #if distance is close to 0 within machine precision they are probably both the same particle
+            if dmag2 < l_soft: #if particle are not within softening distance
+                print('softened!')
+                accel += G * mass / ((l_soft)**1.5) * d
 
-            if snap == 1:
-                Ug += -0.5*G*mass*mbod / (np.sqrt(dmag2)) #factor of 1/2 from double counting particle pairs
+                if snap == 1:
+                    Ug += -0.5*G*mass*mbod / (np.sqrt(l_soft)) #factor of 1/2 from double counting particle pairs
+            else: #if particles are not within softening distance
+
+                accel += G * mass / ((dmag2)**1.5) * d
+
+                if snap == 1:
+                    Ug += -0.5*G*mass*mbod / (np.sqrt(dmag2)) #factor of 1/2 from double counting particle pairs
 
     return accel, Ug
 '''

@@ -34,11 +34,12 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
     mbod  = bod.mass
-    eps = 0.1  #grav softening
-    l_soft = 0.1**2 #square of distance below which softening is used
+    eps = 5**2  #grav softening
+    #l_soft2 = 1**2 #square of distance below which softening is used
 
     accel = np.zeros(len(dvect))
     Ug = 0 #gravitational potential, only actually calculated for snapshots
+    soft = False
     for neigh in neighbor_list:
 
         posit = neigh[0]
@@ -46,20 +47,12 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
         d = (posit - dvect)
         dmag2 = np.dot(d,d)
         if dmag2 > 1e-5: #if distance is close to 0 within machine precision they are probably both the same particle
-            if dmag2 < l_soft: #if particle are not within softening distance
-                print('softened!')
-                accel += G * mass / ((l_soft)**1.5) * d
+            accel += G * mass / ((dmag2+eps)**1.5) * d
 
-                if snap == 1:
-                    Ug += -0.5*G*mass*mbod / (np.sqrt(l_soft)) #factor of 1/2 from double counting particle pairs
-            else: #if particles are not within softening distance
+            if snap == 1:
+                Ug += -0.5*G*mass*mbod / (np.sqrt(dmag2+eps)) #factor of 1/2 from double counting particle pairs
 
-                accel += G * mass / ((dmag2)**1.5) * d
-
-                if snap == 1:
-                    Ug += -0.5*G*mass*mbod / (np.sqrt(dmag2)) #factor of 1/2 from double counting particle pairs
-
-    return accel, Ug
+    return accel, Ug, soft
 '''
 def a(time, mode):
     """
@@ -161,7 +154,7 @@ def leapfrog(bods,h,n,l,snap):
     ptcl_tree.calculate_coms() #calculate coms
 
     U_total = 0 #total gravitational potential, only calculated for snapshots
-
+    softcount = 0 #track number of softened interactions
     for bod in bods: #update pos/vel/acc of each body with leapfrog equations
         v1 = bod.vel #1 n, 2 is n+1/2, 3 is n+1
         x1 = bod.pos
@@ -170,7 +163,9 @@ def leapfrog(bods,h,n,l,snap):
         v2 = v1 + 0.5*h*F1
         x3 = x1 + h*v2
         bod.update_pos(x3) #update pos in bods list
-        F3, Ug = grav_accelerate(bod,ptcl_tree,3,snap)
+        F3, Ug, soft = grav_accelerate(bod,ptcl_tree,3,snap)
+        if soft == True:
+            softcount+=1
         v3 = v2 + 0.5*h*F3
 
         if snap == 1:
@@ -178,6 +173,8 @@ def leapfrog(bods,h,n,l,snap):
 
         bod.update_vel(v3) #update body attributes in bods list
         bod.update_acc(F3)
+
+    print(str(softcount)+' softenings')
 
     return bods, U_total
 
@@ -211,7 +208,7 @@ def integrate(bods_init,ti,tf,h,N,l,nSave):
         print(i)
         if i%snapStep == 0:
             bods, U_total = leapfrog(bods,h,N,l,1)
-            snaps.append(bods)
+            snaps.append(np.copy(bods))
             U_list.append(U_total)
 
             T_total = 0

@@ -75,8 +75,8 @@ def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, a
     pos1 = np.array([r1*np.sin(theta1)*np.cos(phi1), r1*np.sin(theta1)*np.sin(phi1), r1*np.cos(theta1)])
     pos2 = np.array([r2*np.sin(theta2)*np.cos(phi2), r2*np.sin(theta2)*np.sin(phi2), r2*np.cos(theta2)])
 
-    vel1 = np.array([-1.*np.sin(phi1), np.cos(phi1), np.zeros(npart1)])
-    vel2 = np.array([-1.*np.sin(phi2), np.cos(phi2), np.zeros(npart2)])
+    vel1 = vel1*np.array([-1.*np.sin(phi1), np.cos(phi1), np.zeros(npart1)])
+    vel2 = vel2*np.array([-1.*np.sin(phi2), np.cos(phi2), np.zeros(npart2)])
 
     #shift one halo sep/2 to the left and the other sep/2 to the right
     if axis == True:

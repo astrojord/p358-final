@@ -40,5 +40,6 @@ def body_outfile(bodylist, saveas):
     header = ['x', 'y', 'z', 'm', 'vx', 'vy', 'vz', 'ax', 'ay', 'az', 'halonum']
 
     np.savetxt(saveas,arrayay)
+    print("Saved data from list of body objects to ",saveas)
 
     return header

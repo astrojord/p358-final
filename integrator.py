@@ -1,6 +1,7 @@
 import numpy as np
 from BHA import Body
 from BHA import Node
+from analysis import body_outfile
 ########################################################################################
 # global constants
 H = 68.0  # km/s/Mpc
@@ -34,12 +35,12 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
     mbod  = bod.mass
-    eps = 5**2  #grav softening
+    eps = 2**2  #grav softening
     #l_soft2 = 1**2 #square of distance below which softening is used
 
     accel = np.zeros(len(dvect))
     Ug = 0 #gravitational potential, only actually calculated for snapshots
-    soft = False
+
     for neigh in neighbor_list:
 
         posit = neigh[0]
@@ -52,7 +53,7 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
             if snap == 1:
                 Ug += -0.5*G*mass*mbod / (np.sqrt(dmag2+eps)) #factor of 1/2 from double counting particle pairs
 
-    return accel, Ug, soft
+    return accel, Ug
 '''
 def a(time, mode):
     """
@@ -154,7 +155,7 @@ def leapfrog(bods,h,n,l,snap):
     ptcl_tree.calculate_coms() #calculate coms
 
     U_total = 0 #total gravitational potential, only calculated for snapshots
-    softcount = 0 #track number of softened interactions
+
     for bod in bods: #update pos/vel/acc of each body with leapfrog equations
         v1 = bod.vel #1 n, 2 is n+1/2, 3 is n+1
         x1 = bod.pos
@@ -163,9 +164,8 @@ def leapfrog(bods,h,n,l,snap):
         v2 = v1 + 0.5*h*F1
         x3 = x1 + h*v2
         bod.update_pos(x3) #update pos in bods list
-        F3, Ug, soft = grav_accelerate(bod,ptcl_tree,3,snap)
-        if soft == True:
-            softcount+=1
+        F3, Ug, = grav_accelerate(bod,ptcl_tree,3,snap)
+
         v3 = v2 + 0.5*h*F3
 
         if snap == 1:
@@ -174,7 +174,6 @@ def leapfrog(bods,h,n,l,snap):
         bod.update_vel(v3) #update body attributes in bods list
         bod.update_acc(F3)
 
-    print(str(softcount)+' softenings')
 
     return bods, U_total
 
@@ -203,6 +202,7 @@ def integrate(bods_init,ti,tf,h,N,l,nSave):
     snaps  = []
     U_list = []
     T_list = []
+    snapn = 0
 
     for i in range(nstep):
         print(i)
@@ -210,6 +210,8 @@ def integrate(bods_init,ti,tf,h,N,l,nSave):
             bods, U_total = leapfrog(bods,h,N,l,1)
             snaps.append(np.copy(bods))
             U_list.append(U_total)
+            body_outfile(bods,"snapshot%03d.txt"%snapn)
+            snapn += 1
 
             T_total = 0
 

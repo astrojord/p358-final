@@ -51,18 +51,28 @@ def get_halo(fMH, fDENS, fVELS, rs, delta, npart, Mv, Rv, halonum):
     r0 = 1.
     r = fMH(fDENS,rs,int(npart),r0,delta)
 
-    #uniformly select phi and theta for positions
-    phi = np.random.uniform(0,2.*np.pi, len(r))
-    theta = np.random.uniform(0,np.pi, len(r))
+    #position direction random in 3d for each particle
+    dir = np.random.uniform(size=(npart,3)) - 0.5
+    pos = np.zeros((3,npart))
+    for i in range(npart):
+        dir[i,:] = dir[i,:]/np.linalg.norm(dir[i,:]) #unit vector
+        pos[:,i] = r[i] * dir[i,:]
 
-    #convert to cartesian
-    pos = np.array([r*np.sin(theta)*np.cos(phi), r*np.sin(theta)*np.sin(phi), r*np.cos(theta)])
+    #uniformly select phi and theta for positions
+    # phi = np.random.uniform(0,2.*np.pi, len(r))
+    # theta = np.random.uniform(0,np.pi, len(r))
+    #
+    #  #convert to cartesian
+    # pos = np.array([r*np.sin(theta)*np.cos(phi), r*np.sin(theta)*np.sin(phi), r*np.cos(theta)])
+
+
+
 
     #calcualte velocity magnitudes
     velmag = fVELS(r, rs, Mv, Rv)
 
     #velocity direction random in 3D for each particle
-    dir = np.random.uniform(size=(npart,3))
+    dir = np.random.uniform(size=(npart,3)) - 0.5
     vel = np.zeros((3,npart))
     for i in range(npart):
         dir[i,:] = dir[i,:]/np.linalg.norm(dir[i,:]) #unit vector
@@ -77,4 +87,3 @@ def get_halo(fMH, fDENS, fVELS, rs, delta, npart, Mv, Rv, halonum):
     body_outfile(bod, 'init_halo.txt')
 
     return bod
-

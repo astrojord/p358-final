@@ -1,5 +1,6 @@
 import numpy as np
 from BHA import Body
+from analysis import body_outfile
 
 G = 4.5245e-12 #kpc^3/(Msun*My^2)
 
@@ -16,8 +17,9 @@ def cusp_vel(r, rs, M, Rvir):
     v = np.sqrt(G*M/12./rs * (12.*r*(r+rs)**3./rs**4. * np.log((r+rs)/r) - r/(r+rs) * (25.+52.*r/rs+42.*(r/rs)**2.+12.*r/rs)))
     return v
 
-def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, axis):
+def get_halo(fMH, fDENS, fVELS, rs, delta, npart, Mv, Rv, halonum):
     """
+    Generates body object and output file for one initial halo from theoretical density profile
     inputs:
         fMH : function
             function handle for metropolis hastings function that returns array of length npart of r values from sampled from profile
@@ -30,67 +32,49 @@ def get_halos(fMH, fDENS, fVELS, rs, delta, npart, M_typ, Rv_typ, bigrat, sep, a
         delta : float
             MH delta value
         npart : int
-            number of particles (or close to what it will be, after ratios)
-        M_typ : float
-            typical dark matter galaxy halo mass IN SIMULATION UNITS
-        Rv_typ : float
-            typical dark matter galaxy halo mass IN SIMULATION UNITS
-        bigrat : float
-            must be less than 1, ratio of total particles in larger halo (ratio of mass to total mass where Mtotal = 2*Mtyp)
-        sep : float
-            separation between centers of halos
-        axis : bool
-            true for separation on axis in plane of rotation, false for separation on axis perpendicular to plane of rotation
+            number of particles (in one halo)
+        Mv : float
+            halo virial mass IN SIMULATION UNITS
+        Rv : float
+            halo virial radius IN SIMULATION UNITS
+        halonum : int
+            halo number for the body objects for each particle
 
     outputs:
-        init_halos : list
+        init_halo : list
             list of initial body objects for both halos
     """
-    #use bigrat to get M1, M2, npart1, npart2, Rv1, Rv2
-    mpp = 2.*M_typ/npart #mass per particle
-    M1 = bigrat*2.*M_typ
-    M2 = (1.-bigrat)*2.*M_typ
-    npart1 = int(bigrat*npart)
-    npart2 = int((1-bigrat)*npart)
-    Rvir1 = (M1/M_typ)**(1./3.) * Rv_typ  #keeping total density constant
-    Rvir2 = (M2/M_typ)**(1./3.) * Rv_typ
+
+    mpp = Mv/npart #mass per particle
 
     #get r values from methast for each halo
-    r10 = 1.
-    r20 = 1.
-    r1 = fMH(fDENS,rs,int(npart1),r10,delta)
-    r2 = fMH(fDENS,rs,int(npart2),r20,delta)
-
-    #calcualte velocities
-    vel1 = fVELS(r1, rs, M1, Rvir1)
-    vel2 = fVELS(r2, rs, M2, Rvir2)
+    r0 = 1.
+    r = fMH(fDENS,rs,int(npart),r0,delta)
 
     #uniformly select phi and theta for positions
-    phi1 = np.random.uniform(0,2.*np.pi, len(r1))
-    theta1 = np.random.uniform(0,np.pi, len(r1))
-    phi2 = np.random.uniform(0,2.*np.pi, len(r2))
-    theta2 = np.random.uniform(0,np.pi, len(r2))
+    phi = np.random.uniform(0,2.*np.pi, len(r))
+    theta = np.random.uniform(0,np.pi, len(r))
 
     #convert to cartesian
-    pos1 = np.array([r1*np.sin(theta1)*np.cos(phi1), r1*np.sin(theta1)*np.sin(phi1), r1*np.cos(theta1)])
-    pos2 = np.array([r2*np.sin(theta2)*np.cos(phi2), r2*np.sin(theta2)*np.sin(phi2), r2*np.cos(theta2)])
+    pos = np.array([r*np.sin(theta)*np.cos(phi), r*np.sin(theta)*np.sin(phi), r*np.cos(theta)])
 
-    vel1 = vel1*np.array([-1.*np.sin(phi1), np.cos(phi1), np.zeros(npart1)])
-    vel2 = vel2*np.array([-1.*np.sin(phi2), np.cos(phi2), np.zeros(npart2)])
+    #calcualte velocity magnitudes
+    velmag = fVELS(r, rs, Mv, Rv)
 
-    #shift one halo sep/2 to the left and the other sep/2 to the right
-    if axis == True:
-        pos1[0,:] += sep/2.
-        pos2[0,:] -= sep/2.
-    elif axis == False:
-        pos1[2,:] += sep/2.
-        pos2[2,:] -= sep/2.
+    #velocity direction random in 3D for each particle
+    dir = np.random.uniform(size=(npart,3))
+    vel = np.zeros((3,npart))
+    for i in range(npart):
+        dir[i,:] = dir[i,:]/np.linalg.norm(dir[i,:]) #unit vector
+        vel[:,i] = velmag[i] * dir[i,:]
 
     #make a list of body objects to output
-    bod = [None] * (npart1 + npart2)
-    for i in range(npart1):
-        bod[i] = Body(pos=pos1[:,i],mass=mpp,vel=vel1[:,i],acc=np.zeros(3),halonum = 1)
-    for i in range(npart2):
-        bod[npart1 + i] = Body(pos=pos2[:,i],mass=mpp,vel=vel2[:,i],acc=np.zeros(3),halonum = 2)
+    bod = [None] * (npart)
+    for i in range(npart):
+        bod[i] = Body(pos=pos[:,i],mass=mpp,vel=vel[:,i],acc=np.zeros(3),halonum = halonum)
+
+    #make an output file with the list of body objects
+    body_outfile(bod, 'init_halo.txt')
+
     return bod
 

@@ -61,14 +61,15 @@ mainLim = lims[int(maxlimInd[0])]
 ax.set_xlim(mainLim)
 ax.set_ylim(mainLim)
 ax.set_zlim(mainLim)
-
+plt.title('Initial Halo')
+plt.savefig('init_halo')
 
 plt.show()
 
 ti = 0 #initial time
-tf = 80 #final time, Myear
-h  = 5 #timestep, Myear
-l = 1e5 #box size, Mpc
+tf = 200 #final time, Myear
+h  = 1 #timestep, Myear
+l = 1e9 #box size, kpc
 nSave = 1 #number of steps between each save
 N = 3 #number of physical dimensions (plotting set for 3)
 t1 = time.time()
@@ -112,14 +113,14 @@ pos1xB = pos1x[halo2_ind]
 pos1yB = pos1y[halo2_ind]
 pos1zB = pos1z[halo2_ind]
 
-fig = plt.figure()
-ax = fig.add_subplot(111,projection='3d')
-ax.plot(pos1xR,pos1yR,pos1zR,'r.',markersize=2)
-ax.plot(pos1xB,pos1yB,pos1zB,'b.',markersize=2)
-plt.title('initial')
-ax.set_xlim(mainLim)
-ax.set_ylim(mainLim)
-ax.set_zlim(mainLim)
+# fig = plt.figure()
+# ax = fig.add_subplot(111,projection='3d')
+# ax.plot(pos1xR,pos1yR,pos1zR,'r.',markersize=2)
+# ax.plot(pos1xB,pos1yB,pos1zB,'b.',markersize=2)
+# plt.title('initial')
+# ax.set_xlim(mainLim)
+# ax.set_ylim(mainLim)
+# ax.set_zlim(mainLim)
 
 for i in range(nP):
     for j in range(N):
@@ -142,13 +143,11 @@ fig = plt.figure()
 ax = fig.add_subplot(111,projection='3d')
 ax.plot(pos2xR,pos2yR,pos2zR,'r.',markersize=2)
 ax.plot(pos2xB,pos2yB,pos2zB,'b.',markersize=2)
-plt.title('final')
 ax.set_xlim(mainLim)
 ax.set_ylim(mainLim)
 ax.set_zlim(mainLim)
-plt.show()
-
-np.savetxt('dmpos.txt',pos1)
+plt.title('Final Halo')
+plt.savefig('final_halo')
 
 Kvals = np.array(K_list)
 Uvals = np.array(U_list)
@@ -157,20 +156,36 @@ Etot  = Kvals+Uvals
 Etot0 = Etot[0]
 Ediff = Etot - Etot0
 
+virialE = 2*Kvals + Uvals
+
 steps = np.arange(len(bodlist))
-plt.close()
 plt.figure()
 plt.plot(steps,np.array(U_list)+np.array(K_list),'g',label='total energy')
 plt.plot(steps,U_list,'b',label = 'potential energy')
 plt.plot(steps,K_list,'r',label = 'kinetic energy')
 plt.xlabel('timesteps')
 plt.ylabel('energy (Mstar*(kpc/Gy)**2)')
+plt.legend()
+plt.title('All Energy')
+plt.savefig('energy_all')
 
 plt.figure()
-plt.plot(steps,Ediff,'g.',label='energy change')
-plt.plot((0,steps[-1]),(0,0))
+plt.plot(steps,Ediff,'g',label='energy change')
+plt.plot((0,steps[-1]),(0,0),'k:')
 plt.xlabel('timesteps')
 plt.ylabel('energy (Mstar*(kpc/Gy)**2)')
+plt.legend()
+plt.title('Total Energy Change')
+plt.savefig('energy_total')
+
+plt.figure()
+plt.plot(steps,virialE,'b',label='2T+U')
+plt.plot((0,steps[-1]),(0,0),'k:')
+plt.xlabel('timesteps')
+plt.ylabel('energy (Mstar*(kpc/Gy)**2)')
+plt.legend()
+plt.title('Virial Energy')
+plt.savefig('energy_virial')
 plt.show()
 
 # format output in the way we need it for analysis

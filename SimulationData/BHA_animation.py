@@ -9,7 +9,7 @@ import ffmpeg
 
 mpl.rcParams['lines.linewidth'] = 0.1
 
-data = np.loadtxt('snapshot199.txt')
+data = np.loadtxt('snapshot100.txt')
 
 posfull = data[:,0:3]
 pos = []
@@ -18,7 +18,6 @@ for i in range(data.shape[0]):
         #pos.append(posfull[i,:])
         p = (np.random.rand(1,3)-0.5)*(i+1)
         print(p)
-        print(posfull[i,:])
         pos.append(p[0])
 
 pos = []
@@ -91,8 +90,8 @@ def gridplot(node):
 for l in fig.gca().lines:
     l.set_alpha(1)
 
-Writer = animation.writers['ffmpeg']
-writer = Writer(fps=30, metadata=dict(artist='Me'), bitrate=1800)
+#Writer = animation.writers['ffmpeg']
+#writer = Writer(fps=30, metadata=dict(artist='Me'), bitrate=1800)
 
 def init():
     #ax.scatter(xx, yy, zz, marker='o', s=20, c="goldenrod", alpha=0.6)
@@ -109,6 +108,6 @@ gridplot(tree)
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=360, interval=20, blit=True)
 # Save
-anim.save('BHA_ex2.mp4', fps=30, extra_args=['-vcodec', 'libx264'],writer=writer)
+anim.save('BHA_ex2.html', fps=30, extra_args=['-vcodec', 'libx264'],)#writer=writer)
 
 plt.show()

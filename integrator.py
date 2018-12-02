@@ -35,7 +35,7 @@ def grav_accelerate(bod, ptcl_tree,n,snap):
     neighbor_list = ptcl_tree.neighbors(bod)
     dvect = bod.pos
     mbod  = bod.mass
-    eps = 2**2  #grav softening
+    eps = 0.75**2  #grav softening
     #l_soft2 = 1**2 #square of distance below which softening is used
 
     accel = np.zeros(len(dvect))

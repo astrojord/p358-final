@@ -52,7 +52,10 @@ def get_halo(fMH, fDENS, fVELS, rs, delta, npart, Mv, Rv, halonum):
     r = fMH(fDENS,rs,int(npart),r0,delta)
 
     #position direction random in 3d for each particle
-    dir = np.random.uniform(size=(npart,3)) - 0.5
+    dir = np.random.normal(size=(npart,3))
+    print(np.average(dir[:,0]))
+    print(np.average(dir[:,1]))
+    print(np.average(dir[:,2]))
     pos = np.zeros((3,npart))
     for i in range(npart):
         dir[i,:] = dir[i,:]/np.linalg.norm(dir[i,:]) #unit vector
@@ -72,7 +75,7 @@ def get_halo(fMH, fDENS, fVELS, rs, delta, npart, Mv, Rv, halonum):
     velmag = fVELS(r, rs, Mv, Rv)
 
     #velocity direction random in 3D for each particle
-    dir = np.random.uniform(size=(npart,3)) - 0.5
+    dir = np.random.normal(size=(npart,3)) - 0.5
     vel = np.zeros((3,npart))
     for i in range(npart):
         dir[i,:] = dir[i,:]/np.linalg.norm(dir[i,:]) #unit vector

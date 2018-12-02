@@ -18,6 +18,6 @@ bodies = [None]*2*len(data[0,:]))
 
 for i in range(len(bodies)):
     if (i < (len(bodies)/2)):
-        bodies[i] = Body(pos = data[i,0:3], mass = data[i,3],vel = data[i,4:7], acc = data[7:10], halonum = 1)
+        bodies[i] = Body(pos = data[i,0:3], mass = data[i,3],vel = data[i,4:7], acc = data[i,7:10], halonum = 1)
     else:
-        bodies[i] = Body(pos = data[i,0:3], mass = data[i,3],vel = data[i,4:7], acc = data[7:10], halonum = 2)
+        bodies[i] = Body(pos = data[i,0:3], mass = data[i,3],vel = data[i,4:7], acc = data[i,7:10], halonum = 2)

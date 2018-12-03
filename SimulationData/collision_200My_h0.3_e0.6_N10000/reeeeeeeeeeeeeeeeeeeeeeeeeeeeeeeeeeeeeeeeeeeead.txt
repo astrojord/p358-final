@@ -1,0 +1,4 @@
+NFW collision
+velocities: uniform in spherical
+positions: uniform in spherical
+collision velocity: 3 kpc/Gy x direction, 0.5 kpc/Gy y direction
